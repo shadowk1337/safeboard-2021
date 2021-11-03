@@ -1,0 +1,5 @@
+test*
+*build*
+a.out
+CMakeLists.txt
+*.gch

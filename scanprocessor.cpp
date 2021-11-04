@@ -33,7 +33,23 @@ bool ScanInputProcessor::exec() {
     auto argIt = _argv;
 
     _data->setProgramName(*argIt++);
-    _data->setData(argIt);
+
+    if (_argc == 1) {
+        char *tmp = nullptr;
+        tmp = new char[256];
+#if __cplusplus >= 201703L || defined(_WIN32)
+        auto curPath = std::filesystem::current_path();
+        tmp = strdup(curPath.string().c_str());
+#else
+        if (getcwd(tmp, 256) == nullptr) {
+            std::cerr << "Can't open directory: " << *tmp << std::endl;
+        }
+#endif
+        char **tmp2 = &tmp;
+        _data->setData(1, tmp2);
+    } else {
+        _data->setData(_argc - 1, argIt);
+    }
 
     if (manEnabled()) {
         _manProcessor->exec();
@@ -67,11 +83,11 @@ bool ScanDataProcessor::exec() {
 }
 
 void ScanDataProcessor::processDirs() {
-#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L || defined(_WIN32)
     for (const auto &dir : _data->varData()->dirNames) {
         try {
             for (const auto &file: std::filesystem::directory_iterator(dir)) {
-                processFile(file.path());
+                processFile(file.path().string());
             }
         } catch(std::filesystem::filesystem_error const &ex) {
             std::cerr << "Can't open directory: " << dir << std::endl;
@@ -111,14 +127,18 @@ void ScanDataProcessor::processFile(const std::string &filename) const {
                 if (tmpLine.find(evilPattern->second) != -1) {
                     if (extension == "js") {
                         _data->varData()->JSdetected++;
+                        break;
                     } else if (extension == "cmd" || extension == "bat") {
                         _data->varData()->CMDdetected++;
+                        break;
                     } else if (extension == "exe" || extension == "dll") {
                         _data->varData()->EXEdetected++;
+                        break;
                     }
                 }
             }
         }
+        in.close();
     } else {
         _data->varData()->errors++;
     }

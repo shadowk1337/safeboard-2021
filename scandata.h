@@ -44,8 +44,8 @@ public:
     ScanData();
 
 public:
-    bool setProgramName(char *name);
-    bool setData(char **argv);
+    void setProgramName(char *name);
+    void setData(int readSize, char **argv);
 
     const Data *data() const { return _d; }
     VarData *varData() { return _vd; }

@@ -3,11 +3,12 @@
 
 #include <string>
 
-#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L || defined(_WIN32)
 #include <filesystem>
 #include <fstream>
 #else
 #include <dirent.h>
+#include <unistd.h>
 #endif
 
 #include "scandata.h"
